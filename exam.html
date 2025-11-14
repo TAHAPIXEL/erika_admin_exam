@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آزمون استخدام ادمینی</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Vazirmatn Font from Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Custom CSS Classes */
+        .bg-app {
+            background-color: #ffffff;
+        }
+        .text-app {
+            color: #000000;
+        }
+        .border-app {
+            border-color: #000000;
+        }
+        .bg-input {
+            background-color: #fafafa;
+        }
+        .btn-primary {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #333333;
+        }
+        .en-text {
+            font-family: "Times New Roman", serif;
+            font-weight: bold;
+        }
+        
+        /* Apply Vazirmatn font to all Persian text */
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        /* Custom focus styles */
+        input:focus, textarea:focus, select:focus {
+            --tw-ring-color: rgb(0 0 0);
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+            border-color: #000000;
+        }
+        
+        /* Custom hover scale effect */
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #000000;
+            transition: width 0.3s ease;
+        }
+        
+        /* Question navigation */
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .question-nav-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .question-nav-btn.current {
+            background-color: #000000;
+            color: white;
+        }
+        
+        .question-nav-btn.answered {
+            background-color: #f3f4f6;
+        }
+        
+        /* Option styles */
+        .option-item {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .option-item:hover {
+            border-color: #000000;
+        }
+        
+        .option-item.selected {
+            border-color: #000000;
+            background-color: #f9fafb;
+        }
+        
+        /* Textarea styles */
+        .answer-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            resize: vertical;
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Success page styles */
+        .success-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #000000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-app text-app min-h-screen py-8">
+    <!-- Main Exam Container -->
+    <div id="exam-container" class="container mx-auto px-4 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">آزمون استخدام ادمینی</h1>
+            <p class="en-text text-xl mb-4">Erika Khosravi</p>
+            <div class="flex justify-center mb-6">
+                <div class="w-6 h-1 bg-black rounded-full"></div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm mb-2">
+                    <span>پیشرفت: <span id="progress-percent">0%</span></span>
+                    <span>سوال <span id="current-question">1</span> از 54</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill" style="width: 2%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Exam Container -->
+        <div class="bg-white border-app border rounded-2xl shadow-md p-6 md:p-8">
+            <!-- Question -->
+            <div id="question-container">
+                <!-- Question content will be loaded here by JavaScript -->
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" class="btn-primary px-6 py-2 rounded-lg font-medium opacity-50 cursor-not-allowed" disabled>
+                    قبلی
+                </button>
+                <button id="next-btn" class="btn-primary px-6 py-2 rounded-lg font-medium hover-scale">
+                    بعدی
+                </button>
+            </div>
+            
+            <!-- Question Navigation -->
+            <div class="question-nav" id="question-nav">
+                <!-- Navigation buttons will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Submit Section -->
+        <div class="text-center mt-8">
+            <button id="submit-btn" class="btn-primary px-8 py-3 rounded-lg font-bold text-lg hover-scale shadow-md flex items-center justify-center mx-auto">
+                <span id="submit-text">ارسال پاسخ‌ها</span>
+                <div id="submit-spinner" class="spinner hidden"></div>
+            </button>
+            <p class="text-sm text-gray-600 mt-4">پس از اطمینان از پاسخ‌های خود، دکمه ارسال را بفشارید</p>
+        </div>
+    </div>
+
+    <!-- Success Page (Hidden by default) -->
+    <div id="success-page" class="success-container hidden">
+        <div class="success-card">
+            <div class="success-icon">✅</div>
+            <h2 class="text-3xl font-bold mb-4 text-green-600">آزمون با موفقیت ثبت شد!</h2>
+            <p class="text-lg mb-6 text-gray-700">پاسخ‌های شما با موفقیت ثبت و ارسال شد.</p>
+            <p class="text-gray-600 mb-8">با تشکر از شرکت شما در آزمون استخدام ادمینی</p>
+            <div class="border-t pt-6">
+                <p class="text-sm text-gray-500">شما نمی‌توانید دوباره در این آزمون شرکت کنید</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-4" id="modal-title">تأیید ارسال آزمون</h3>
+            <p class="text-gray-700 mb-6" id="modal-message">
+                آیا مطمئن هستید که می‌خواهید آزمون را ارسال کنید؟
+            </p>
+            <div class="flex gap-4 justify-center">
+                <button id="modal-cancel" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    انصراف
+                </button>
+                <button id="modal-confirm" class="btn-primary px-6 py-2 rounded-lg hover-scale flex items-center justify-center">
+                    <span id="modal-confirm-text">بله، ارسال کن</span>
+                    <div id="modal-spinner" class="spinner hidden"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://zuxnwivvhdknrsnelcio.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1eG53aXZ2aGRrbnJzbmVsY2lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwOTk4MjUsImV4cCI6MjA3ODY3NTgyNX0.WxyqhPYudUH_yP_5RyiYhcVeF2_dp30SDg96Ost4Xp4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Questions data
+        const questions = [
+            {
+                id: 1,
+                text: "اگر کارفرما مشکل اصلی‌اش رشد پیجش باشد چه جوانبی را در نظر می‌گیرید؟",
+                type: "text"
+            },
+            {
+                id: 2,
+                text: "چه چیزی باعث می‌شود جلوی رشد پیج گرفته شود؟",
+                type: "text"
+            },
+            {
+                id: 3,
+                text: "بهترین زمان پست گذاری؟",
+                type: "multiple",
+                options: [
+                    "تایمی که الگوریتم اینستاگرام در نظر گرفته.",
+                    "تایمی که کارفرما تعیین کند.",
+                    "تایمی که ادمین در نظر دارد.",
+                    "تایم و ساعت آپلود مهم نیست."
+                ]
+            },
+            {
+                id: 4,
+                text: "مهم ترین عامل سناریونویسی چیست؟",
+                type: "text"
+            },
+            {
+                id: 5,
+                text: "کدام گزینه در رابطه با وظایف ادمین سناریونویس غلط است؟",
+                type: "multiple",
+                options: [
+                    "نوشتن سناریو به صورت کامل.",
+                    "نوشتن جزئیات سناریو.",
+                    "چیدمان ساختار سناریو.",
+                    "فیلمبرداری از محتوای سناریو."
+                ]
+            },
+            {
+                id: 6,
+                text: "اگر یک پست در زمان های اولیه (۲۴ ساعت اول) آپلود، ویو مدنظر را نگیرد بهترین کار چیست؟",
+                type: "multiple",
+                options: [
+                    "حذف پست.",
+                    "آرشیو پست.",
+                    "تبلیغ فوری.",
+                    "تحلیل پست."
+                ]
+            },
+            {
+                id: 7,
+                text: "۴ هدف اصلی استوری گذاشتن را بگویید (بدون توضیح فقط گفتن هدف)؟",
+                type: "text"
+            },
+            {
+                id: 8,
+                text: "بهترین تعداد استوری روزانه برای پیج های آموزشی؟",
+                type: "multiple",
+                options: [
+                    "۳ تا ۶ استوری.",
+                    "۶ تا ۸ استوری.",
+                    "۱۰ الی ۲۰ و حتی بیشتر."
+                ]
+            },
+            {
+                id: 9,
+                text: "چه نوع محتوایی باعث ورودی گرفتن از اکسپلور می‌شود؟ (به صورت کوتاه توضیح دهید)",
+                type: "text"
+            },
+            {
+                id: 10,
+                text: "چرا استفاده از ابزارهای تعاملی در استوری اهمیت دارد؟",
+                type: "text"
+            },
+            {
+                id: 11,
+                text: "تفاوت محتوای پست و استوری از نظر هدف توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 12,
+                text: "بعد از آنالیز ویترین پیج باید کدام یک از موردهای زیر بررسی شود؟",
+                type: "multiple",
+                options: [
+                    "رشد پیج.",
+                    "تبلیغات پیج.",
+                    "استوری.",
+                    "هیچکدام."
+                ]
+            },
+            {
+                id: 13,
+                text: "کدام عامل بیشترین تاثیر را در وایرال شدن ریلز دارد؟",
+                type: "multiple",
+                options: [
+                    "کیفیت فیلمبرداری - تایم ریلز.",
+                    "استفاده از آهنگ ترند.",
+                    "نیازسازی موثر.",
+                    "سناریو."
+                ]
+            },
+            {
+                id: 14,
+                text: "بهترین زمان برای آپلود پست کدام تایم است؟",
+                type: "multiple",
+                options: [
+                    "روز.",
+                    "شب.",
+                    "هیچکدام."
+                ]
+            },
+            {
+                id: 15,
+                text: "در استراتژی ریلز، ثانیه اول چه اسمی دارد؟ مهم است؟",
+                type: "multiple",
+                options: [
+                    "کال تو اکشن - خیر.",
+                    "کال تو اکشن - بله.",
+                    "قلاب - بله.",
+                    "قلاب - خیر."
+                ]
+            },
+            {
+                id: 16,
+                text: "اگر ریلز پیج بازدید کمی بگیرد، شما در جایگاه ادمین چه اقدامی انجام می‌دهید؟",
+                type: "text"
+            },
+            {
+                id: 17,
+                text: "تفاوت ریلز آموزشی و تبلیغاتی از نظر هدف و ساختار توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 18,
+                text: "هدف اصلی از پاسخ‌دهی به دایرکت ها چیست؟",
+                type: "text"
+            },
+            {
+                id: 19,
+                text: "اگر در یک موقعیت، بازخورد و پیام منفی از کاربران پیج یا پلتفرم تلگرام دریافت کنید، اولین اقدام چیست؟ (پاسخ کوتاه)",
+                type: "text"
+            },
+            {
+                id: 20,
+                text: "هنگام جواب دادن به کامنت ها باید چطور برخورد کرد؟",
+                type: "text"
+            },
+            {
+                id: 21,
+                text: "بهترین روش برای جواب دادن به مشتری که دو دل هست موقع خرید چیست؟",
+                type: "text"
+            },
+            {
+                id: 22,
+                text: "بهترین روش متقاعد کردن مشتری چه روشی هست؟ (پاسخ کوتاه)",
+                type: "text"
+            },
+            {
+                id: 23,
+                text: "آیا بین ادمین دایرکت فروش و ادمین دایرکتی که وظیفه‌اش تعامل است فرق هست؟",
+                type: "multiple",
+                options: [
+                    "بله.",
+                    "خیر."
+                ]
+            },
+            {
+                id: 24,
+                text: "اگر پیج کارفرما بعد از آنالیز کلی نیاز داشت که فروش یا رشد پیج را یاد بگیرد، آیا ادمین آنالیز باید در رابطه با آن مشکل به آن‌ها مشاوره بدهد؟ (پاسخ کوتاه)",
+                type: "text"
+            },
+            {
+                id: 25,
+                text: "ساختار اصولی سناریو را توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 26,
+                text: "ساختار اصولی سناریوی استوری را توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 27,
+                text: "چه کارها و اقداماتی باعث رشد فروش می‌شود؟",
+                type: "text"
+            },
+            {
+                id: 28,
+                text: "برای اینکه در اینستاگرام سریع تر رشد کنیم کدام مورد تصمیم عاقلانه تری است؟",
+                type: "multiple",
+                options: [
+                    "تبلیغات.",
+                    "محتوا.",
+                    "هیچکدام."
+                ]
+            },
+            {
+                id: 29,
+                text: "برای ریلزی که آپلود می‌کنیم نیاز است قبلش در استوری اقداماتی صورت بگیرد؟ (برای بله یا خیر توضیح دهید)",
+                type: "text"
+            },
+            {
+                id: 30,
+                text: "کدام باعث رشد پیج می‌شود:",
+                type: "multiple",
+                options: [
+                    "مدام استوری گذاشتن.",
+                    "فعالیت اصولی.",
+                    "محتوا مناسب.",
+                    "هیچکدام."
+                ]
+            },
+            {
+                id: 31,
+                text: "در یک سناریوی مناسب، بهترین بخش برای جلب توجه مخاطب کدام است؟",
+                type: "multiple",
+                options: [
+                    "ثانیه های پایانی.",
+                    "ثانیه های میانی.",
+                    "کپشن ویدیو.",
+                    "هیچکدام."
+                ]
+            },
+            {
+                id: 32,
+                text: "در سناریوهای آموزشی بهترین روش انتقال به بیننده چیست؟",
+                type: "multiple",
+                options: [
+                    "فقط توضیح آموزشات.",
+                    "نمایش یک مثال.",
+                    "گفتن اطلاعات پشت سر هم.",
+                    "نوشتن متن روی ویدیو."
+                ]
+            },
+            {
+                id: 33,
+                text: "اگر هدف سناریو فروش محصول باشد چه نکته هایی باید اجرا شود؟",
+                type: "text"
+            },
+            {
+                id: 34,
+                text: "۳ نمونه قلاب برای پیج فروش لباس بدهید (لباس دخترانه).",
+                type: "text"
+            },
+            {
+                id: 35,
+                text: "یک سناریوی ریلز کوتاه برای پیج فروش کیف بنویسید.",
+                type: "text"
+            },
+            {
+                id: 36,
+                text: "کپشن موثر باید چه ویژگی داشته باشد؟",
+                type: "text"
+            },
+            {
+                id: 37,
+                text: "کدام مورد در رابطه با وایرال شدن ریلز موثر نیست؟",
+                type: "multiple",
+                options: [
+                    "استفاده از کپشن.",
+                    "انتشار در ساعت مناسب.",
+                    "کیفیت محتوا.",
+                    "کاور."
+                ]
+            },
+            {
+                id: 38,
+                text: "آیا باید تمام پست های پیج یک نواخت و در یک قالب و هدف باشند؟ یا در موضوعات مختلف؟ (جواب خود را توضیح دهید)",
+                type: "text"
+            },
+            {
+                id: 39,
+                text: "مرحله به مرحله آنالیز یک پیج را توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 40,
+                text: "آیا جواب دادن به بازخوردهای منفی در یک پیج فروشگاهی مهم است؟",
+                type: "multiple",
+                options: [
+                    "بله.",
+                    "خیر."
+                ]
+            },
+            {
+                id: 41,
+                text: "۴ مورد از هدف اصلی استوری گذاشتن را بیان کنید.",
+                type: "text"
+            },
+            {
+                id: 42,
+                text: "کدام ابزار از استوری باعث مارکتینگ در پیج می‌شود؟",
+                type: "multiple",
+                options: [
+                    "استفاده از استیکرهای تعاملی.",
+                    "۷ تا استوری روزانه متنوع.",
+                    "با چهره فعالیت کردن.",
+                    "استوری گذاشتن به صورت متداوم."
+                ]
+            },
+            {
+                id: 43,
+                text: "چند اقدام برای بالا بردن ویو استوری بگویید.",
+                type: "text"
+            },
+            {
+                id: 44,
+                text: "۳ ایده برای استوری پیج فروش لباس؟ *فقط هدف استوری گفته شود.",
+                type: "text"
+            },
+            {
+                id: 45,
+                text: "آیا تعامل ساعت مشخصی دارد؟",
+                type: "multiple",
+                options: [
+                    "بله.",
+                    "خیر."
+                ]
+            },
+            {
+                id: 46,
+                text: "آیا تعامل کردن روی رشد پیج تاثیر دارد؟ (توضیح دهید)",
+                type: "text"
+            },
+            {
+                id: 47,
+                text: "بهترین روش تبلیغ را توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 48,
+                text: "۴ هدف اصلی تبلیغات را توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 49,
+                text: "تصور کنید قرار است به دو تا بلاگر تبلیغ بدهید. هر دو ۵۰۰ کا فالور دارند. شما موقع انتخاب بلاگر به چه چیزهایی توجه می‌کنید؟ هر دو بلاگر را توضیح دهید.",
+                type: "text"
+            },
+            {
+                id: 50,
+                text: "اگر بخواهید به یک نفر تبلیغ بدهید به چه چیزهایی توجه می‌کنید؟",
+                type: "text"
+            },
+            {
+                id: 51,
+                text: "در تبلیغات بلاگرها کدام موثرتر است؟",
+                type: "multiple",
+                options: [
+                    "گویشی.",
+                    "بنری.",
+                    "حضوری."
+                ]
+            },
+            {
+                id: 52,
+                text: "چه المان هایی در تبلیغ باعث افزایش اعتماد مخاطب می‌شود؟",
+                type: "text"
+            },
+            {
+                id: 53,
+                text: "آیا با یک پیج صفر یا حداقل ۳۰۰ - ۴۰۰ تایی روش درستی است تبلیغ دادن؟",
+                type: "multiple",
+                options: [
+                    "بله.",
+                    "خیر."
+                ]
+            },
+            {
+                id: 54,
+                text: "برای اینکه بتوانیم محصول را بفروشیم (حتی به ۳ - ۴ تا مشتری! و حتی ۱ - ۲ تا مشتری) باید چه کارهایی انجام دهیم؟",
+                type: "text"
+            }
+        ];
+
+        // User answers storage
+        let userAnswers = Array(questions.length).fill(null);
+        let currentQuestionIndex = 0;
+        let examSubmitted = false;
+        let userId = null;
+
+        // DOM elements
+        const examContainer = document.getElementById('exam-container');
+        const successPage = document.getElementById('success-page');
+        const questionContainer = document.getElementById('question-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const submitSpinner = document.getElementById('submit-spinner');
+        const questionNav = document.getElementById('question-nav');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercent = document.getElementById('progress-percent');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCancel = document.getElementById('modal-cancel');
+        const modalConfirm = document.getElementById('modal-confirm');
+        const modalConfirmText = document.getElementById('modal-confirm-text');
+        const modalSpinner = document.getElementById('modal-spinner');
+
+        // Save answers to Supabase
+        async function saveAnswersToSupabase() {
+            if (!userId || examSubmitted) return;
+
+            try {
+                const { error } = await supabase
+                    .from('exam_answers')
+                    .upsert({
+                        user_id: userId,
+                        answers: userAnswers,
+                        current_question: currentQuestionIndex,
+                        last_saved: new Date().toISOString()
+                    }, {
+                        onConflict: 'user_id'
+                    });
+
+                if (error) {
+                    console.error('Error saving answers:', error);
+                } else {
+                    console.log('✅ Answers saved to Supabase');
+                }
+            } catch (error) {
+                console.error('Error saving answers:', error);
+            }
+        }
+
+        // Load saved answers from Supabase
+        async function loadSavedAnswers() {
+            if (!userId) return;
+
+            try {
+                const { data: savedAnswers, error } = await supabase
+                    .from('exam_answers')
+                    .select('answers, current_question')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (savedAnswers && !error) {
+                    userAnswers = savedAnswers.answers || Array(questions.length).fill(null);
+                    currentQuestionIndex = savedAnswers.current_question || 0;
+                    console.log('✅ Answers loaded from Supabase');
+                }
+            } catch (error) {
+                console.error('Error loading saved answers:', error);
+            }
+        }
+
+        // Submit exam to Supabase
+        async function submitExamToSupabase() {
+            if (!userId || examSubmitted) return;
+
+            try {
+                // Calculate score
+                const answeredCount = userAnswers.filter(answer => answer !== null).length;
+                const score = answeredCount;
+
+                // Save final results
+                const { error } = await supabase
+                    .from('exam_results')
+                    .insert({
+                        user_id: userId,
+                        answers: userAnswers,
+                        score: score,
+                        submitted_at: new Date().toISOString(),
+                        completed: true
+                    });
+
+                if (error) throw error;
+
+                // Delete temporary answers
+                await supabase
+                    .from('exam_answers')
+                    .delete()
+                    .eq('user_id', userId);
+
+                console.log('✅ Exam submitted to Supabase');
+                return true;
+            } catch (error) {
+                console.error('Error submitting exam:', error);
+                throw error;
+            }
+        }
+
+        // Initialize the exam
+        async function initExam() {
+            // Check if user is registered
+            const userData = localStorage.getItem('exam_user');
+            if (!userData) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const user = JSON.parse(userData);
+            userId = user.id;
+
+            // Check if exam already submitted
+            try {
+                const { data: existingExam, error } = await supabase
+                    .from('exam_results')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (existingExam && !error) {
+                    showSuccessPage();
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking exam status:', error);
+            }
+
+            // Load saved answers
+            await loadSavedAnswers();
+
+            // Create question navigation
+            createQuestionNav();
+            
+            // Load first question
+            loadQuestion(currentQuestionIndex);
+            
+            // Update progress
+            updateProgress();
+            
+            // Add event listeners
+            prevBtn.addEventListener('click', goToPrevQuestion);
+            nextBtn.addEventListener('click', goToNextQuestion);
+            submitBtn.addEventListener('click', showConfirmationModal);
+            modalCancel.addEventListener('click', hideConfirmationModal);
+            modalConfirm.addEventListener('click', submitExam);
+
+            // Auto-save answers every 30 seconds
+            setInterval(saveAnswersToSupabase, 30000);
+        }
+
+        // Create question navigation buttons
+        function createQuestionNav() {
+            questionNav.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const button = document.createElement('button');
+                button.className = 'question-nav-btn';
+                button.textContent = index + 1;
+                button.dataset.index = index;
+                
+                if (index === currentQuestionIndex) {
+                    button.classList.add('current');
+                }
+                
+                if (userAnswers[index] !== null) {
+                    button.classList.add('answered');
+                }
+                
+                button.addEventListener('click', () => {
+                    goToQuestion(index);
+                });
+                
+                questionNav.appendChild(button);
+            });
+        }
+
+        // Load a question
+        function loadQuestion(index) {
+            const question = questions[index];
+            
+            let questionHTML = `
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold mb-4">سوال ${index + 1}: ${question.text}</h2>
+            `;
+            
+            if (question.type === 'multiple') {
+                questionHTML += `<div class="options-container">`;
+                
+                question.options.forEach((option, optionIndex) => {
+                    const isSelected = userAnswers[index] === optionIndex;
+                    questionHTML += `
+                        <div class="option-item ${isSelected ? 'selected' : ''}" data-option="${optionIndex}">
+                            ${option}
+                        </div>
+                    `;
+                });
+                
+                questionHTML += `</div>`;
+            } else {
+                const answerText = userAnswers[index] || '';
+                questionHTML += `
+                    <textarea class="answer-textarea bg-input" placeholder="پاسخ خود را وارد کنید...">${answerText}</textarea>
+                `;
+            }
+            
+            questionHTML += `</div>`;
+            
+            questionContainer.innerHTML = questionHTML;
+            
+            // Add event listeners for options
+            if (question.type === 'multiple') {
+                const optionItems = document.querySelectorAll('.option-item');
+                optionItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        optionItems.forEach(opt => opt.classList.remove('selected'));
+                        item.classList.add('selected');
+                        userAnswers[index] = parseInt(item.dataset.option);
+                        updateQuestionNav();
+                        updateProgress();
+                        saveAnswersToSupabase(); // ✅ ذخیره فوری در Supabase
+                    });
+                });
+            } else {
+                const textarea = document.querySelector('.answer-textarea');
+                textarea.addEventListener('input', () => {
+                    userAnswers[index] = textarea.value;
+                    updateQuestionNav();
+                    updateProgress();
+                    saveAnswersToSupabase(); // ✅ ذخیره فوری در Supabase
+                });
+            }
+            
+            updateNavigationButtons();
+            currentQuestionSpan.textContent = index + 1;
+        }
+
+        // Update navigation buttons state
+        function updateNavigationButtons() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+            
+            if (prevBtn.disabled) {
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            if (nextBtn.disabled) {
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            if (currentQuestionIndex === questions.length - 1) {
+                nextBtn.textContent = 'پایان';
+            } else {
+                nextBtn.textContent = 'بعدی';
+            }
+        }
+
+        // Update question navigation
+        function updateQuestionNav() {
+            const navButtons = document.querySelectorAll('.question-nav-btn');
+            navButtons.forEach((button, index) => {
+                button.classList.remove('current');
+                if (userAnswers[index] !== null) {
+                    button.classList.add('answered');
+                } else {
+                    button.classList.remove('answered');
+                }
+            });
+            
+            navButtons[currentQuestionIndex].classList.add('current');
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const answeredCount = userAnswers.filter(answer => answer !== null).length;
+            const progress = (answeredCount / questions.length) * 100;
+            
+            progressFill.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.round(progress)}%`;
+        }
+
+        // Go to previous question
+        function goToPrevQuestion() {
+            if (currentQuestionIndex > 0) {
+                if (questions[currentQuestionIndex].type === 'text') {
+                    const textarea = document.querySelector('.answer-textarea');
+                    if (textarea) {
+                        userAnswers[currentQuestionIndex] = textarea.value;
+                    }
+                }
+                
+                currentQuestionIndex--;
+                loadQuestion(currentQuestionIndex);
+            }
+        }
+
+        // Go to next question
+        function goToNextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                if (questions[currentQuestionIndex].type === 'text') {
+                    const textarea = document.querySelector('.answer-textarea');
+                    if (textarea) {
+                        userAnswers[currentQuestionIndex] = textarea.value;
+                    }
+                }
+                
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            }
+        }
+
+        // Go to specific question
+        function goToQuestion(index) {
+            if (questions[currentQuestionIndex].type === 'text') {
+                const textarea = document.querySelector('.answer-textarea');
+                if (textarea) {
+                    userAnswers[currentQuestionIndex] = textarea.value;
+                }
+            }
+            
+            currentQuestionIndex = index;
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // Show confirmation modal
+        function showConfirmationModal() {
+            if (questions[currentQuestionIndex].type === 'text') {
+                const textarea = document.querySelector('.answer-textarea');
+                if (textarea) {
+                    userAnswers[currentQuestionIndex] = textarea.value;
+                }
+            }
+            
+            const unansweredQuestions = userAnswers.filter(answer => answer === null).length;
+            
+            if (unansweredQuestions > 0) {
+                modalTitle.textContent = 'تأیید ارسال آزمون';
+                modalMessage.textContent = `شما به ${unansweredQuestions} سوال پاسخ نداده‌اید. آیا مطمئن هستید که می‌خواهید آزمون را ارسال کنید؟`;
+            } else {
+                modalTitle.textContent = 'تأیید ارسال آزمون';
+                modalMessage.textContent = 'آیا مطمئن هستید که می‌خواهید آزمون را ارسال کنید؟';
+            }
+            
+            confirmationModal.classList.remove('hidden');
+        }
+
+        // Hide confirmation modal
+        function hideConfirmationModal() {
+            confirmationModal.classList.add('hidden');
+        }
+
+        // Submit exam
+        async function submitExam() {
+            if (examSubmitted) return;
+            
+            // Show loading state
+            modalConfirm.disabled = true;
+            modalConfirmText.textContent = 'در حال ارسال...';
+            modalSpinner.classList.remove('hidden');
+            
+            try {
+                // Save final answers
+                await saveAnswersToSupabase();
+
+                // Submit to Supabase
+                await submitExamToSupabase();
+
+                // Save to localStorage as backup
+                const userData = JSON.parse(localStorage.getItem('exam_user'));
+                const examResults = {
+                    user: userData,
+                    answers: userAnswers,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('exam_results', JSON.stringify(examResults));
+
+                examSubmitted = true;
+                hideConfirmationModal();
+                showSuccessPage();
+                
+            } catch (error) {
+                console.error('Error submitting exam:', error);
+                alert('خطا در ارسال آزمون. لطفاً دوباره تلاش کنید.');
+            } finally {
+                // Reset modal button state
+                modalConfirm.disabled = false;
+                modalConfirmText.textContent = 'بله، ارسال کن';
+                modalSpinner.classList.add('hidden');
+            }
+        }
+
+        // Show success page
+        function showSuccessPage() {
+            examContainer.classList.add('hidden');
+            successPage.classList.remove('hidden');
+            
+            // Disable all form elements
+            const allInputs = document.querySelectorAll('input, textarea, button, select');
+            allInputs.forEach(input => {
+                input.disabled = true;
+            });
+        }
+
+        // Initialize the exam when page loads
+        document.addEventListener('DOMContentLoaded', initExam);
+    </script>
+</body>
+</html>
